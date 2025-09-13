@@ -10,8 +10,9 @@ export interface Shape {
 
 export interface Shot {
   id: string;
-  src: string;
-  annotatedSrc?: string;
+  src: string;            // ảnh gốc (import)
+  annotatedSrc?: string;  // ảnh đã bake sau mỗi thao tác vẽ
+  compositeSrc?: string;  // ảnh đã ghép vào mockup (dùng cho Pages Preview)
   description: string;
   shapes: Shape[];
 }
