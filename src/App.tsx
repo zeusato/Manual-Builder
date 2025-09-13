@@ -1,9 +1,11 @@
 import React from 'react'
 import clsx from 'clsx'
 import type { Shot, ShapeType, PagePreset } from './types'
+import DEFAULT_HEADER from "/assets/banner.png"
 
 const Annotator = React.lazy(() => import('./components/Annotator'))
 const PagesPreviewModal = React.lazy(() => import('./components/PagesPreviewModal'))
+// export const DEFAULT_HEADER = bannerUrl;
 
 const PRESETS: PagePreset[] = [
   { key: 'A4_P', label: 'A4 Dọc (1240×1754)', width: 1240, height: 1754, maxCols: 3, maxRows: 2 },
@@ -14,7 +16,7 @@ const PRESETS: PagePreset[] = [
 function uid() { return Math.random().toString(36).slice(2) }
 
 export default function App() {
-  const DEFAULT_HEADER = import.meta.env.BASE_URL + 'assets/banner.png'
+  // const DEFAULT_HEADER = import.meta.env.BASE_URL + 'assets/banner.png'
 
   const [title, setTitle] = React.useState('HƯỚNG DẪN SỬ DỤNG')
   const [headerUrl, setHeaderUrl] = React.useState(DEFAULT_HEADER)

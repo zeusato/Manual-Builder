@@ -1,7 +1,9 @@
 import React from 'react'
 import type { Shot, PagePreset } from '@/types'
 import MockupFrame from './MockupFrame'
-  const silkUrl = import.meta.env.BASE_URL + 'assets/Silk.png';
+import silkp from "/assets/Silk.png";
+
+// export const silkUrl = silkp;
 
 type Props = {
   open: boolean
@@ -177,7 +179,7 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
     <div data-page className="mx-auto border border-black/10 rounded-xl overflow-hidden" style={pageStyle}>
       {/* Silk background (bottom-right) */}
       <img
-        src={silkUrl}
+        src={silkp}
         aria-hidden
         className="pointer-events-none select-none"
         style={{

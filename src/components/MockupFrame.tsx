@@ -1,4 +1,6 @@
 import React from 'react'
+import mockup from "/assets/mockup.png";
+// export const url = mockup;
 
 type Props = {
   screenUrl: string
@@ -7,7 +9,7 @@ type Props = {
 }
 
 export default function MockupFrame({ screenUrl, width = 280, mockupUrl }: Props) {
-  const url = mockupUrl || (import.meta.env.BASE_URL + 'assets/mockup.png')
+  // const url = mockupUrl || (import.meta.env.BASE_URL + 'assets/mockup.png')
   const [mockupH, setMockupH] = React.useState<number | null>(null)
   const mockRef = React.useRef<HTMLImageElement>(null)
 
@@ -44,7 +46,7 @@ export default function MockupFrame({ screenUrl, width = 280, mockupUrl }: Props
       <img
         ref={mockRef}
         onLoad={onMockupLoad}
-        src={url}
+        src={mockup}
         className="relative z-10 block w-full h-auto pointer-events-none select-none"
         alt="phone mockup"
       />
