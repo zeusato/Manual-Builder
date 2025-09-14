@@ -17,8 +17,8 @@ type Props = {
 
 const silk = {
   sizeRatio: 0.42,   // chiều rộng = 42% bề rộng trang (đổi theo ý)
-  right: -80,          // cách mép phải (px)
-  bottom: -180,         // cách mép dưới (px)
+  right: -80,        // cách mép phải (px)
+  bottom: -180,      // cách mép dưới (px)
   opacity: 0.30,     // độ trong suốt 0..1
   rotateDeg: 0       // xoay nếu cần (độ)
 };
@@ -29,11 +29,51 @@ function chunk<T>(arr: T[], size: number) {
   return out
 }
 
+/** Ước lượng số byte của dataURL base64 */
+function dataUrlBytes(dataUrl: string) {
+  const b64 = dataUrl.split(',')[1] || ''
+  // ~ (len * 3) / 4 trừ padding
+  return Math.floor((b64.length * 3) / 4) - (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0)
+}
+
+/** Render 1 page element => JPEG (nén dần) tới khi ≤ maxBytes */
+async function renderCompressedJPEG(
+  el: HTMLElement,
+  preset: PagePreset,
+  opts: { pixelRatio: number; maxBytes: number; aggressive: boolean }
+) {
+  const { pixelRatio, maxBytes, aggressive } = opts
+  const { toCanvas } = await import('html-to-image')
+
+  // Nếu bật “giảm tối đa”, giới hạn pixelRatio nhẹ để đỡ nặng
+  const effPixelRatio = aggressive ? Math.min(pixelRatio, 1.25) : pixelRatio
+
+  const canvas = await toCanvas(el, {
+    pixelRatio: effPixelRatio,
+    canvasWidth: preset.width,
+    canvasHeight: preset.height,
+    style: { transform: 'none' }, // tránh biến dạng khi clone
+  })
+
+  // bắt đầu chất lượng cao rồi giảm dần
+  let q = aggressive ? 0.72 : 0.92
+  let url = canvas.toDataURL('image/jpeg', q)
+
+  while (dataUrlBytes(url) > maxBytes && q > 0.5) {
+    q -= 0.05
+    url = canvas.toDataURL('image/jpeg', q)
+  }
+  return url
+}
+
 export default function PagesPreviewModal({
   open, onClose, title, headerUrl, shots, preset, pixelRatio
 }: Props) {
   const viewportRef = React.useRef<HTMLDivElement>(null)
   const [scale, setScale] = React.useState(1)
+
+  // ✅ Thêm trạng thái “giảm dung lượng tối đa” (default: bật)
+  const [shrink, setShrink] = React.useState(true)
 
   // Tính scale cho MỌI preset dựa vào không gian thực của viewport (đã trừ padding)
   const recomputeScale = React.useCallback(() => {
@@ -65,40 +105,67 @@ export default function PagesPreviewModal({
   const pages = chunk(shots, perPage)
 
   async function exportPNGs() {
-    const { toPng } = await import('html-to-image')
-    // Lấy đúng node "data-page" (không phụ thuộc scale bên ngoài)
     const els = Array.from(viewportRef.current!.querySelectorAll('[data-page]')) as HTMLElement[]
     let idx = 1
-    for (const el of els) {
-      const url = await toPng(el, {
-        pixelRatio,
-        canvasWidth: preset.width,
-        canvasHeight: preset.height,
-        style: { transform: 'none' } // tránh ảnh hưởng transform khi clone
-      })
-      download(url, `manual-page-${idx}.png`); idx++
+
+    if (shrink) {
+      // ➜ Xuất JPEG nén ≤ 1MB/trang
+      for (const el of els) {
+        const url = await renderCompressedJPEG(el, preset, {
+          pixelRatio,
+          maxBytes: 1_000_000,
+          aggressive: true
+        })
+        download(url, `manual-page-${idx}.jpg`); idx++
+      }
+    } else {
+      // ➜ Xuất PNG “full chất” như trước
+      const { toPng } = await import('html-to-image')
+      for (const el of els) {
+        const url = await toPng(el, {
+          pixelRatio,
+          canvasWidth: preset.width,
+          canvasHeight: preset.height,
+          style: { transform: 'none' }
+        })
+        download(url, `manual-page-${idx}.png`); idx++
+      }
     }
   }
 
   async function exportPDF() {
     const { default: jsPDF } = await import('jspdf')
-    const { toPng } = await import('html-to-image')
     const els = Array.from(viewportRef.current!.querySelectorAll('[data-page]')) as HTMLElement[]
+
     const doc = new jsPDF({
       orientation: preset.width >= preset.height ? 'landscape' : 'portrait',
       unit: 'px',
       format: [preset.width, preset.height]
     })
+
     for (let i = 0; i < els.length; i++) {
       const el = els[i]
-      const url = await toPng(el, {
-        pixelRatio,
-        canvasWidth: preset.width,
-        canvasHeight: preset.height,
-        style: { transform: 'none' }
-      })
       if (i > 0) doc.addPage([preset.width, preset.height], preset.width >= preset.height ? 'l' : 'p')
-      doc.addImage(url, 'PNG', 0, 0, preset.width, preset.height)
+
+      if (shrink) {
+        // ➜ Nén JPEG ≤ 1MB/trang trước khi addImage
+        const url = await renderCompressedJPEG(el, preset, {
+          pixelRatio,
+          maxBytes: 1_000_000,
+          aggressive: true
+        })
+        doc.addImage(url, 'JPEG', 0, 0, preset.width, preset.height)
+      } else {
+        // ➜ PNG “full chất”
+        const { toPng } = await import('html-to-image')
+        const url = await toPng(el, {
+          pixelRatio,
+          canvasWidth: preset.width,
+          canvasHeight: preset.height,
+          style: { transform: 'none' }
+        })
+        doc.addImage(url, 'PNG', 0, 0, preset.width, preset.height)
+      }
     }
     doc.save('manual.pdf')
   }
@@ -109,8 +176,21 @@ export default function PagesPreviewModal({
         {/* header */}
         <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
           <div className="font-semibold">Pages Preview</div>
+
+          {/* ⬅️ Checkbox 'giảm dung lượng tối đa' */}
+          <label className="ml-4 flex items-center gap-2 text-sm opacity-90">
+            <input
+              type="checkbox"
+              checked={shrink}
+              onChange={(e) => setShrink(e.target.checked)}
+            />
+            Giảm dung lượng tối đa
+          </label>
+
           <div className="ml-auto flex items-center gap-2">
-            <button onClick={exportPNGs} className="px-3 py-1 rounded bg-brand-600 hover:bg-brand-500">Export PNG</button>
+            <button onClick={exportPNGs} className="px-3 py-1 rounded bg-brand-600 hover:bg-brand-500">
+              Export {shrink ? 'JPEG (≤1MB/trang)' : 'PNG'}
+            </button>
             <button onClick={exportPDF} className="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700">Export PDF</button>
             <button onClick={onClose} className="px-3 py-1 rounded bg-zinc-700 hover:bg-zinc-600">Close</button>
           </div>
@@ -195,44 +275,44 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
       />
       <div>
         <div className="relative h-[180px] w-full">
-        <img src={headerUrl} className="absolute inset-0 w-full h-full object-fill" />
-        <div className="absolute inset-0" />
-        <div className="absolute inset-0 flex items-cente">
+          <img src={headerUrl} className="absolute inset-0 w-full h-full object-fill" />
+          <div className="absolute inset-0" />
+          <div className="absolute inset-0 flex items-cente">
             <div className="text-[#002865] px-6 text-left ml-60 my-auto text-5xl font-extrabold leading-tight drop-shadow">
-            {title}
+              {title}
             </div>
-        </div>
+          </div>
         </div>
 
-      {/* Lưới ảnh + đổ bóng nhẹ cho mockup */}
-      <div className="px-6 py-4" style={{ height: preset.height - 260 }}>
-        <div style={gridStyle}>
-          {items.map((s, i) => {
-            const url = s.annotatedSrc || s.src
-            return (
-              <div key={s.id} className="text-center">
-                <div style={{ filter: 'drop-shadow(12px 16px 12px rgba(0,0,0,0.34)) drop-shadow(3px 4px 4px rgba(0,0,0,0.22))' }}>
-                  <MockupFrame
-                    screenUrl={url}
-                    width={Math.min(280, Math.floor((preset.width - 80) / preset.maxCols) - 24)}
-                  />
+        {/* Lưới ảnh + đổ bóng nhẹ cho mockup */}
+        <div className="px-6 py-4" style={{ height: preset.height - 260 }}>
+          <div style={gridStyle}>
+            {items.map((s, i) => {
+              const url = s.annotatedSrc || s.src
+              return (
+                <div key={s.id} className="text-center">
+                  <div style={{ filter: 'drop-shadow(12px 16px 12px rgba(0,0,0,0.34)) drop-shadow(3px 4px 4px rgba(0,0,0,0.22))' }}>
+                    <MockupFrame
+                      screenUrl={url}
+                      width={Math.min(280, Math.floor((preset.width - 80) / preset.maxCols) - 24)}
+                    />
+                  </div>
+                  <div className="mt-5 text-4xl text-[#FF6500] font-bold">
+                    Bước {index * preset.maxCols * preset.maxRows + i + 1}:
+                  </div>
+                  <div className="text-2xl leading-relaxed text-black/85 max-w-[340px] mx-auto">
+                    {s.description || ''}
+                  </div>
                 </div>
-                <div className="mt-5 text-4xl text-[#FF6500] font-bold">
-                  Bước {index * preset.maxCols * preset.maxRows + i + 1}:
-                </div>
-                <div className="text-2xl leading-relaxed text-black/85 max-w-[340px] mx-auto">
-                  {s.description || ''}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-      </div>      
 
-      {/* Footer */}
-      <div className="h-[60px] w-full grid place-items-center text-xl text-black/80">
-        Trang {index + 1}/{total}
-      </div>
+        {/* Footer */}
+        <div className="h-[60px] w-full grid place-items-center text-xl text-black/80">
+          Trang {index + 1}/{total}
+        </div>
       </div>
     </div>
   )
