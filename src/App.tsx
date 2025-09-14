@@ -11,6 +11,7 @@ const router = createBrowserRouter(
     { path: '/', element: <Intro /> },
     { path: '/manual/app', element: <ManualAppPage /> },
     { path: '/manual/web', element: <ManualWebPage /> },
+    { path: '*', element: <Intro /> },
   ],
   { basename: import.meta.env.BASE_URL || '/' }
 )
