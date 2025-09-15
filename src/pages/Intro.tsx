@@ -39,7 +39,7 @@ export default function Intro() {
       />
 
       {/* Spotlight bám chuột cho toàn trang */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_600px_at_var(--mx)_var(--my),rgba(255,255,255,0.12),transparent_40%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(400px_400px_at_var(--mx)_var(--my),rgba(255,255,255,0.12),transparent_30%)]" />
 
       {/* Noise/texture rất nhẹ để đỡ phẳng */}
       <div
@@ -57,41 +57,42 @@ export default function Intro() {
         className="absolute -right-24 -bottom-40 w-[50rem] opacity-50 pointer-events-none animate-slow-float"
         alt=""
       />
+      <section className="relative min-h-dvh flex items-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+          {/* Title gradient aurora – nền ngoài chữ trong suốt */}
+          <h1
+            className="text-left ml-0 mr-auto font-extrabold tracking-tight leading-none
+                      bg-clip-text text-transparent drop-shadow-[0_8px_24px_rgba(0,0,0,0.25)]
+                      animate-text-gradient text-[clamp(3rem,8vw,7rem)]"
+            style={{
+              backgroundImage:
+                "linear-gradient(92deg,#22d3ee 0%,#34d399 25%,#facc15 52%,#f59e0b 78%,#a78bfa 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter: "saturate(1.25) contrast(1.15)",
+              backgroundSize: "200% 100%",
+              backgroundPosition: "0% 50%",
+            }}
+          >
+            Manual Builder
+          </h1>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
-        {/* Title gradient aurora – nền ngoài chữ trong suốt */}
-        <h1
-          className="text-left ml-0 mr-auto font-extrabold tracking-tight leading-none
-                     bg-clip-text text-transparent drop-shadow-[0_8px_24px_rgba(0,0,0,0.25)]
-                     animate-text-gradient text-[clamp(3rem,8vw,7rem)]"
-          style={{
-            backgroundImage:
-              "linear-gradient(92deg,#22d3ee 0%,#34d399 25%,#facc15 52%,#f59e0b 78%,#a78bfa 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            filter: "saturate(1.25) contrast(1.15)",
-            backgroundSize: "200% 100%",
-            backgroundPosition: "0% 50%",
-          }}
-        >
-          Manual Builder
-        </h1>
+          <p className="mt-4 text-white/90 max-w-2xl">
+            Chọn loại tài liệu cần soạn: Ứng dụng di động (APP) hoặc Giao dịch
+            WEB. <br/><span className="text-white/70">Phím tắt: 1 = APP, 2 = WEB</span>
+          </p>
 
-        <p className="mt-4 text-white/90 max-w-2xl">
-          Chọn loại tài liệu cần soạn: Ứng dụng di động (APP) hoặc Giao dịch
-          WEB. <br/><span className="text-white/70">Phím tắt: 1 = APP, 2 = WEB</span>
-        </p>
-
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6">          
-          <NavCard to="/manual/app" title="HDSD APP">            
-              Công cụ hiện có: mockup + annotate + export trang.            
-          </NavCard>
-          <NavCard to="/manual/web" title="HDSD WEB">
-            Layout 60/40, khoanh vùng tự đánh số, step có ảnh vuông + mô tả.
-          </NavCard>
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6">          
+            <NavCard to="/manual/app" title="HDSD APP">            
+                Công cụ hiện có: mockup + annotate + export trang.            
+            </NavCard>
+            <NavCard to="/manual/web" title="HDSD WEB">
+              Layout 60/40, khoanh vùng tự đánh số, step có ảnh vuông + mô tả.
+            </NavCard>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* CSS cục bộ cho animation & hiệu ứng */}
       <style>{`
@@ -103,10 +104,10 @@ export default function Intro() {
 
         @keyframes slow-float {
           0%   { transform: translate3d(0,0,0) rotate(0deg) }
-          50%  { transform: translate3d(0,-12px,0) rotate(2deg) }
+          50%  { transform: translate3d(0,-20px,0) rotate(2deg) }
           100% { transform: translate3d(0,0,0) rotate(0deg) }
         }
-        .animate-slow-float { animation: slow-float 16s ease-in-out infinite; }
+        .animate-slow-float { animation: slow-float 8s ease-in-out infinite; }
 
         /* Sheen quét khi hover */
           @keyframes sheen {
