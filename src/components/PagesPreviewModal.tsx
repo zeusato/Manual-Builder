@@ -242,7 +242,8 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
     gap: 16,
     alignContent: 'center',
     justifyItems: 'center',
-    alignItems: 'start',
+    alignItems: 'stretch',
+    gridAutoRows: '1fr',
     height: preset.height - 260
   }
   const pageStyle: React.CSSProperties = {
@@ -290,17 +291,20 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
             {items.map((s, i) => {
               const url = s.annotatedSrc || s.src
               return (
-                <div key={s.id} className="text-center">
+                <div
+                  key={s.id}
+                  className="flex h-full flex-col items-center justify-center gap-6 text-center"
+                >
                   <div style={{ filter: 'drop-shadow(12px 16px 12px rgba(0,0,0,0.34)) drop-shadow(3px 4px 4px rgba(0,0,0,0.22))' }}>
                     <MockupFrame
                       screenUrl={url}
                       width={Math.min(280, Math.floor((preset.width - 80) / preset.maxCols) - 24)}
                     />
                   </div>
-                  <div className="mt-5 text-4xl text-[#FF6500] font-bold">
+                  <div className="text-4xl text-[#FF6500] font-bold">
                     Bước {index * preset.maxCols * preset.maxRows + i + 1}:
                   </div>
-                  <div className="text-2xl leading-relaxed text-black/85 max-w-[340px] mx-auto">
+                  <div className="text-2xl leading-relaxed text-black/85 max-w-[340px]">
                     {s.description || ''}
                   </div>
                 </div>
