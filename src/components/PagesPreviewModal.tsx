@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import type { Shot, PagePreset } from '@/types'
 import MockupFrame from './MockupFrame'
 import silkp from "/assets/Silk.png";
@@ -15,6 +15,7 @@ type Props = {
   pixelRatio: number
 }
 
+// Cấu hình “vệt lụa” trang trí
 const silk = {
   sizeRatio: 0.42,   // chiều rộng = 42% bề rộng trang (đổi theo ý)
   right: -80,        // cách mép phải (px)
@@ -45,7 +46,7 @@ async function renderCompressedJPEG(
   const { pixelRatio, maxBytes, aggressive } = opts
   const { toCanvas } = await import('html-to-image')
 
-  // Nếu bật “giảm tối đa”, giới hạn pixelRatio nhẹ để đỡ nặng
+  // Nếu bật “giảm tối đa”, giới hạn pixelRatio nhỏ để đỡ nặng
   const effPixelRatio = aggressive ? Math.min(pixelRatio, 1.25) : pixelRatio
 
   const canvas = await toCanvas(el, {
@@ -55,7 +56,7 @@ async function renderCompressedJPEG(
     style: { transform: 'none' }, // tránh biến dạng khi clone
   })
 
-  // bắt đầu chất lượng cao rồi giảm dần
+  // Bắt đầu chất lượng cao rồi giảm dần
   let q = aggressive ? 0.72 : 0.92
   let url = canvas.toDataURL('image/jpeg', q)
 
@@ -75,7 +76,7 @@ export default function PagesPreviewModal({
   // ✅ Thêm trạng thái “giảm dung lượng tối đa” (default: bật)
   const [shrink, setShrink] = React.useState(true)
 
-  // Tính scale cho MỌI preset dựa vào không gian thực của viewport (đã trừ padding)
+  // Tính scale cho MỖI preset dựa vào không gian thực của viewport (đã trừ padding)
   const recomputeScale = React.useCallback(() => {
     const el = viewportRef.current
     if (!el) return
@@ -109,7 +110,7 @@ export default function PagesPreviewModal({
     let idx = 1
 
     if (shrink) {
-      // ➜ Xuất JPEG nén ≤ 1MB/trang
+      // ➤ Xuất JPEG nén ≤ 1MB/trang
       for (const el of els) {
         const url = await renderCompressedJPEG(el, preset, {
           pixelRatio,
@@ -119,7 +120,7 @@ export default function PagesPreviewModal({
         download(url, `manual-page-${idx}.jpg`); idx++
       }
     } else {
-      // ➜ Xuất PNG “full chất” như trước
+      // ➤ Xuất PNG “full chất” như trước
       const { toPng } = await import('html-to-image')
       for (const el of els) {
         const url = await toPng(el, {
@@ -148,7 +149,7 @@ export default function PagesPreviewModal({
       if (i > 0) doc.addPage([preset.width, preset.height], preset.width >= preset.height ? 'l' : 'p')
 
       if (shrink) {
-        // ➜ Nén JPEG ≤ 1MB/trang trước khi addImage
+        // ➤ Nén JPEG ≤ 1MB/trang trước khi addImage
         const url = await renderCompressedJPEG(el, preset, {
           pixelRatio,
           maxBytes: 1_000_000,
@@ -156,7 +157,7 @@ export default function PagesPreviewModal({
         })
         doc.addImage(url, 'JPEG', 0, 0, preset.width, preset.height)
       } else {
-        // ➜ PNG “full chất”
+        // ➤ PNG “full chất”
         const { toPng } = await import('html-to-image')
         const url = await toPng(el, {
           pixelRatio,
@@ -177,7 +178,7 @@ export default function PagesPreviewModal({
         <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
           <div className="font-semibold">Pages Preview</div>
 
-          {/* ⬅️ Checkbox 'giảm dung lượng tối đa' */}
+          {/* ☐ Checkbox 'giảm dung lượng tối đa' */}
           <label className="ml-4 flex items-center gap-2 text-sm opacity-90">
             <input
               type="checkbox"
@@ -274,7 +275,7 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
           zIndex: 0
         }}
       />
-      <div>
+      <div className="relative z-10">
         <div className="relative h-[180px] w-full">
           <img src={headerUrl} className="absolute inset-0 w-full h-full object-fill" />
           <div className="absolute inset-0" />
