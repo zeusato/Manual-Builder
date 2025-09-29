@@ -278,7 +278,7 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
         <div className="relative h-[180px] w-full">
           <img src={headerUrl} className="absolute inset-0 w-full h-full object-fill" />
           <div className="absolute inset-0" />
-          <div className="absolute inset-0 flex items-cente">
+          <div className="absolute inset-0 flex items-center">
             <div className="text-[#002865] px-6 text-left ml-60 my-auto text-5xl font-extrabold leading-tight drop-shadow">
               {title}
             </div>
@@ -293,13 +293,15 @@ function Page({ index, headerUrl, title, items, preset, total }: PageProps) {
               return (
                 <div
                   key={s.id}
-                  className="flex h-full flex-col items-center justify-center gap-6 text-center"
+                  className="flex h-full w-full flex-col items-center justify-start gap-6 text-center"
                 >
-                  <div style={{ filter: 'drop-shadow(12px 16px 12px rgba(0,0,0,0.34)) drop-shadow(3px 4px 4px rgba(0,0,0,0.22))' }}>
-                    <MockupFrame
-                      screenUrl={url}
-                      width={Math.min(280, Math.floor((preset.width - 80) / preset.maxCols) - 24)}
-                    />
+                  <div className="flex w-full justify-center">
+                    <div style={{ filter: 'drop-shadow(12px 16px 12px rgba(0,0,0,0.34)) drop-shadow(3px 4px 4px rgba(0,0,0,0.22))' }}>
+                      <MockupFrame
+                        screenUrl={url}
+                        width={Math.min(280, Math.floor((preset.width - 80) / preset.maxCols) - 24)}
+                      />
+                    </div>
                   </div>
                   <div className="text-4xl text-[#FF6500] font-bold">
                     Bước {index * preset.maxCols * preset.maxRows + i + 1}:
